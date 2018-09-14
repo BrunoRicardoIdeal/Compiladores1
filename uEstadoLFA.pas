@@ -7,11 +7,14 @@ uses uClassesBase, System.Generics.Collections;
 type
    TEstadoLFA = class(TEstado)
       private
+         FToken: string;
          FListaTransicoes: TObjectList<TTransicao>;
       public
          destructor Destroy; override;
          constructor Create(pId: TEstadoAutomatoMGOL; pFinal: boolean);
          function Transitar(pCadeia: string): TEstadoLFA;
+
+         property Token: string read FToken write FToken;
          property ListaTransicoes: TObjectList<TTransicao> read FListaTransicoes write FListaTransicoes;
    end;
 
@@ -26,6 +29,7 @@ constructor TEstadoLFA.Create(pId: TEstadoAutomatoMGOL; pFinal: boolean);
 begin
    inherited Create(pId, pFinal);
    FListaTransicoes := TObjectList<TTransicao>.Create();
+   FToken := EmptyStr;
 end;
 
 destructor TEstadoLFA.Destroy;

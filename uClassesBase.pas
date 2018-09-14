@@ -34,8 +34,10 @@ type
    TItemDic = class(TObject)
       private
          FToken: string;
+         FLexema: string;
          FTipo: Char;
       public
+         constructor Create(const pToken, pLexema: string; const pTipo: Char);
    end;
 
    TAjudaLexema = class
@@ -87,6 +89,15 @@ begin
    inherited Create;
    FElemento := pElemento;
    FEstadoDestino := pEstadoDestino;
+end;
+
+{ TItemDic }
+
+constructor TItemDic.Create(const pToken, pLexema: string; const pTipo: Char);
+begin
+   FToken := pToken;
+   FTipo := pTipo;
+   FLexema := pLexema;
 end;
 
 end.

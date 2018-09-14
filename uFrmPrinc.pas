@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, uAutomatoLexico;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, uAutomatoLexico, uAnalisadorLexico;
 
 type
   TfrmPrincipal = class(TForm)
@@ -24,11 +24,9 @@ implementation
 
 procedure TfrmPrincipal.FormCreate(Sender: TObject);
 var
-   la: TAutomatoLexico;
+   lTESTE: TAnalisadorLexico;
 begin
-   la := TAutomatoLexico.Create;
-   la.Transitar('"');
-   la.Transitar('ç');
+   lTESTE := TAnalisadorLexico.Create;
 end;
 
 end.

@@ -116,7 +116,7 @@ var
 begin
    for lEst in ARRAY_ESTADOS do
    begin
-      lFinal :=  (lEst in [teQ2, teQ3, teQ5, teQ6, teQ7, teQ8, teQ9, teQ10, teQ11, teQ12, 
+      lFinal :=  (lEst in [teQ2, teQ3, teQ5, teQ6, teQ7, teQ8, teQ9, teQ10, teQ11, teQ12,
                   teQ13,teQ14, teQ15, teQ16, teQ21, teQ23]);
       FListaEstados.Add(TEstadoLFA.Create(lEst, lFinal));
    end;
