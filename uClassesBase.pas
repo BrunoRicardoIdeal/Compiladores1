@@ -8,8 +8,10 @@ interface
 type
    TEstadoAutomatoMGOL = ( teQ0, teQ1, teQ2, teQ3, teQ4, teQ5, teQ6, teQ7,
       teQ8, teQ9, teQ10, teQ11, teQ12, teQ13, teQ14, teQ15, teQ16, teQ17,
-      teQ18, teQ19, teQ20, teQ21, teQ22, teQ23, teQ24, teQ25
+      teQ18, teQ19, teQ20, teQ21, teQ22, teQ23, teQ24, teQ25, teQ26
    );
+
+   TEItemDesconhecido = class(Exception);
 
    TEstado = class(TObject)
       private
@@ -38,24 +40,32 @@ type
          FTipo: Char;
       public
          constructor Create(const pToken, pLexema: string; const pTipo: Char);
+         property Token: string read FToken;
+         property Lexema: string read FLexema;
+         property Tipo: Char read FTipo;
    end;
 
-   TAjudaLexema = class
+   TAjuda = class
       class function CharToElemento(const pCaractere: string): string;
+      class function EstaoIsFinal(const pEstado: TEstadoAutomatoMGOL): Boolean;
    end;
 
 const
-   ARRAY_ESTADOS: array[1..26] of TEstadoAutomatoMGOL = (
+   ARRAY_ESTADOS: array[1..27] of TEstadoAutomatoMGOL = (
       teQ0, teQ1, teQ2, teQ3, teQ4, teQ5, teQ6, teQ7,
       teQ8, teQ9, teQ10, teQ11, teQ12, teQ13, teQ14, teQ15, teQ16, teQ17,
-      teQ18, teQ19, teQ20, teQ21, teQ22, teQ23, teQ24, teQ25
+      teQ18, teQ19, teQ20, teQ21, teQ22, teQ23, teQ24, teQ25, teQ26
    );
+
+   ARRAY_ESTADOS_FINAIS: array[1..17] of TEstadoAutomatoMGOL = (
+      teQ2, teQ3, teQ5, teQ6, teQ7, teQ8, teQ9, teQ10, teQ11, teQ12,
+      teQ13,teQ14, teQ15, teQ16, teQ21, teQ23, teQ26);
 
 implementation
 
 { TClassHelper }
 
-class function TAjudaLexema.CharToElemento(const pCaractere: string): string;
+class function TAjuda.CharToElemento(const pCaractere: string): string;
 begin
    if not pCaractere.isEmpty then
    begin
@@ -98,6 +108,21 @@ begin
    FToken := pToken;
    FTipo := pTipo;
    FLexema := pLexema;
+end;
+
+class function TAjuda.EstaoIsFinal(const pEstado: TEstadoAutomatoMGOL): Boolean;
+var
+   lIndice: integer;
+begin
+   Result := False;
+   for lIndice := Low(ARRAY_ESTADOS_FINAIS) to High(ARRAY_ESTADOS_FINAIS) do
+   begin
+      if pEstado = ARRAY_ESTADOS_FINAIS[lIndice] then
+      begin
+         Result := True;
+         break;
+      end;
+   end;
 end;
 
 end.

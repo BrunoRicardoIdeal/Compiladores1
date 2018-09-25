@@ -8,8 +8,7 @@ type
       private
          var
             FListaEstados: TObjectList<TEstadoLFA>;
-            FEstadoInicialObj: TObject;
-            FPEstadoAtual: TPEstadoLFA;
+            FIndexEstadoAtual: integer;
          procedure CriarEstados;
          procedure ConfigurarEstados;
          function EstadoByID(const pID: TEstadoAutomatoMGOL): TEstadoLFA;
@@ -17,9 +16,8 @@ type
          constructor Create;
          destructor Destroy;override;
          procedure RestaurarEstadoInicial;
+         function IndexOf(const pEstado: TEstadoLFA): Integer;
          function Transitar(pCadeia: string): TEstadoLFA;
-
-         property PEstadoAtual: TPEstadoLFA read FPEstadoAtual;
    end;
 
 implementation
@@ -71,7 +69,7 @@ begin
          end;
          teQ7:
          begin
-            lEstado.ListaTransicoes.Add(TTransicao.Create('>', EstadoByID(teq9)));
+            lEstado.ListaTransicoes.Add(TTransicao.Create('>', EstadoByID(teq26)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('=', EstadoByID(teq8)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('-', EstadoByID(teq20)));
          end;
@@ -111,14 +109,42 @@ end;
 
 procedure TAutomatoLexico.CriarEstados;
 var
-   lEst: TEstadoAutomatoMGOL;
-   lFinal: Boolean;
+   lEst       : TEstadoAutomatoMGOL;
+   lEstadoLFA : TEstadoLFA;
+   lFinal     : Boolean;
 begin
    for lEst in ARRAY_ESTADOS do
    begin
-      lFinal :=  (lEst in [teQ2, teQ3, teQ5, teQ6, teQ7, teQ8, teQ9, teQ10, teQ11, teQ12,
-                  teQ13,teQ14, teQ15, teQ16, teQ21, teQ23]);
-      FListaEstados.Add(TEstadoLFA.Create(lEst, lFinal));
+      lFinal := TAjuda.EstaoIsFinal(lEst);
+      lEstadoLFA := TEstadoLFA.Create( lEst, lFinal);
+
+      if lFinal then
+      begin
+         case lEst of
+            teQ2: lEstadoLFA.Token := 'Comentário';
+            teQ3: lEstadoLFA.Token := 'EOF';
+            teQ5: lEstadoLFA.Token := 'literal';
+            teQ6: lEstadoLFA.Token := 'id';
+
+            teQ7, teQ8, teQ11, teQ12, teQ13, teQ26:
+            begin
+               lEstadoLFA.Token := 'OPR';
+            end;
+
+            teQ9: lEstadoLFA.Token := 'OPM';
+            teQ10: lEstadoLFA.Token := 'RCB';
+            teQ14: lEstadoLFA.Token := 'PT_V';
+            teQ15: lEstadoLFA.Token := 'AB_P';
+            teQ16: lEstadoLFA.Token := 'FC_P';
+
+            teQ21, teQ23:
+            begin
+               lEstadoLFA.Token := 'NUM' ;
+            end
+         end;
+      end;
+
+      FListaEstados.Add(lEstadoLFA);
    end;
 end;
 
@@ -144,17 +170,30 @@ begin
    end;
 end;
 
+function TAutomatoLexico.IndexOf(const pEstado: TEstadoLFA): Integer;
+var
+   lIndice: integer;
+begin
+   for lIndice := 0 to pred(Self.FListaEstados.Count) do
+   begin
+      if pEstado.Id = Self.FListaEstados[lIndice].Id then
+      begin
+         Result := lIndice;
+         Break;
+      end;
+   end;
+end;
+
 procedure TAutomatoLexico.RestaurarEstadoInicial;
 begin
-   FEstadoInicialObj := FListaEstados.Items[0];
-   FPEstadoAtual     := Addr(FEstadoInicialObj);
+   FIndexEstadoAtual := 0;
 end;
 
 function TAutomatoLexico.Transitar(pCadeia: string): TEstadoLFA;
 begin
-   pCadeia       := TAjudaLexema.CharToElemento(pCadeia);
-   Result        := FPEstadoAtual^.Transitar(pCadeia);
-   FPEstadoAtual := @Result;
+   pCadeia           := TAjuda.CharToElemento(pCadeia);
+   FIndexEstadoAtual := Self.IndexOf(FListaEstados.Items[FIndexEstadoAtual].Transitar(pCadeia));
+   Result            := FListaEstados.Items[FIndexEstadoAtual];
 end;
 
 end.

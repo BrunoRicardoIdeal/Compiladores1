@@ -2,7 +2,7 @@ unit uAnalisadorLexico;
 
 interface
 
-uses uClassesBase, System.Generics.Collections, uAutomatoLexico;
+uses uClassesBase, System.Generics.Collections, uAutomatoLexico, Classes;
 
 type
    TAnalisadorLexico = class(TObject)
@@ -10,15 +10,18 @@ type
          const
             SIMBOLOS_INICIAIS: array[1..12] of string =
                ('varinicio', 'varfim', 'inicio', 'escreva', 'leia',
-                'se', 'entao', 'fimse', 'fim', 'inteiro', 'lit',
+                'se', 'entao', 'fimse', 'fim', 'inteiro', 'literal',
                 'real');
             TIPO_NULO = 'N';
          var
             FDicTabelaSimbolos: TDictionary<integer, TItemDic> ;
             FCadeiaAnalise: string;
             FAutomato: TAutomatoLexico;
+            FFonte: TStringList;
+
+         function IsSImboloInicial(const pSimbolo: string): boolean;
       public
-         constructor Create;
+         constructor Create(const pFonte: string);
          destructor Destroy;override;
 
          procedure AnalisarLinha(const pLinha: string);
@@ -62,30 +65,31 @@ end;
 function TAnalisadorLexico.AnalisarLexema(const pLexema: string): TItemDic;
 var
    lChar: Char;
-   lEstadoNovo, lEstadoAnterior: TEstadoLFA;
+   lEstadoNovo: TEstadoLFA;
+   lTok: string;
+   lItemDic, litemInicial: TItemDic;
 begin
+   Result := nil;
    FAutomato.RestaurarEstadoInicial;
    for lChar in pLexema do
    begin
-      lEstadoAnterior := lEstadoNovo;
-      try
-         lEstadoNovo := FAutomato.Transitar(lChar);
-      except
-         on e: Exception do
-         begin
-            raise Exception.Create(e.Message);
-         end;
-      end;
+      lTok := FAutomato.Transitar(lChar).Token;
    end;
-   if Assigned(lEstadoNovo) then
-   begin
-      if lEstadoNovo.Final then
-      begin
-         lEstadoNovo.
-      end;
 
-      Result := TItemDic.Create(lEstadoNovo.);
+   if lTok = 'id' then
+   begin
+      if IsSImboloInicial(pLexema) then
+      begin
+         lTok := pLexema;
+      end;
+      lItemDic := TItemDic.Create(lTok, pLexema, TIPO_NULO);
+      AdicionarItemDic(lItemDic);
+   end
+   else
+   begin
+      lItemDic := TItemDic.Create(lTok, pLexema, TIPO_NULO);
    end;
+   Result := lItemDic;
 end;
 
 procedure TAnalisadorLexico.AnalisarLinha(const pLinha: string);
@@ -93,31 +97,33 @@ var
    lChar: Char;
    lEstadoNovo, lEstadoAnterior: TEstadoLFA;
 begin
-   FAutomato.RestaurarEstadoInicial;
-   FCadeiaAnalise := EmptyStr;
-   lEstadoNovo := nil;
-   for lChar in pLinha do
-   begin
-      FCadeiaAnalise.Insert(Pred(Length(FCadeiaAnalise)), lChar);
-      lEstadoAnterior := lEstadoNovo;
-      lEstadoNovo := FAutomato.Transitar(lChar);
-      if not Assigned(lEstadoNovo) then
-      begin
-         lEstadoNovo := lEstadoAnterior;
-         Break;
-      end;
-   end;
-   if lEstadoAnterior.Final then
-   begin
-
-   end;
+//   FAutomato.RestaurarEstadoInicial;
+//   FCadeiaAnalise := EmptyStr;
+//   lEstadoNovo := nil;
+//   for lChar in pLinha do
+//   begin
+//      FCadeiaAnalise.Insert(Pred(Length(FCadeiaAnalise)), lChar);
+//      lEstadoAnterior := lEstadoNovo;
+//      lEstadoNovo     := FAutomato.Transitar(lChar);
+//      if not Assigned(lEstadoNovo) then
+//      begin
+//         lEstadoNovo := lEstadoAnterior;
+//         Break;
+//      end;
+//   end;
+//   if lEstadoAnterior.Final then
+//   begin
+//
+//   end;
 end;
 
-constructor TAnalisadorLexico.Create;
+constructor TAnalisadorLexico.Create(const pFonte: string);
 begin
    inherited Create;
    FDicTabelaSimbolos := TDictionary<integer, TItemDic>.Create;
    FAutomato := TAutomatoLexico.Create;
+   FFonte := TStringList.Create;
+   FFonte.Text := pFonte;
    IniciarDicSimbolos;
 end;
 
@@ -125,6 +131,7 @@ destructor TAnalisadorLexico.Destroy;
 begin
    FDicTabelaSimbolos.Destroy;
    FAutomato.Free;
+   FFonte.Free;
    inherited;
 end;
 
@@ -135,6 +142,21 @@ begin
    for lElemento in SIMBOLOS_INICIAIS do
    begin
       AdicionarItemDic(TItemDic.Create(lElemento, lElemento, TIPO_NULO));
+   end;
+end;
+
+function TAnalisadorLexico.IsSImboloInicial(const pSimbolo: string): boolean;
+var
+   lIndice: integer;
+begin
+   Result := False;
+   for lIndice := Low(SIMBOLOS_INICIAIS) to High(SIMBOLOS_INICIAIS) do
+   begin
+      if pSimbolo.ToLower.Equals(SIMBOLOS_INICIAIS[lIndice]) then
+      begin
+         Result := true;
+         Break;
+      end;
    end;
 end;
 

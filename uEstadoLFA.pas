@@ -25,6 +25,7 @@ implementation
 uses
   System.SysUtils;
 
+
 constructor TEstadoLFA.Create(pId: TEstadoAutomatoMGOL; pFinal: boolean);
 begin
    inherited Create(pId, pFinal);
@@ -53,7 +54,7 @@ begin
          Exit;
       end;
    end;
-   raise Exception.Create('Elemento desconhecido:' + pCadeia);
+   raise TEItemDesconhecido.Create('Elemento desconhecido:' + pCadeia);
 end;
 
 end.
