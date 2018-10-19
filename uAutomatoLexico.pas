@@ -7,9 +7,15 @@ type
    TAutomatoLexico = class(TObject)
       private
          var
+            //Lista dos estados do autômato léxico
             FListaEstados: TObjectList<TEstadoLFA>;
+            //Posição, na lista de estados, do estado atual
             FIndexEstadoAtual: integer;
+
+         //Inicialização dos estados
          procedure CriarEstados;
+
+         //Configuração de cada estado
          procedure ConfigurarEstados;
          function EstadoByID(const pID: TEstadoAutomatoMGOL): TEstadoLFA;
       public
@@ -18,6 +24,8 @@ type
          procedure RestaurarEstadoInicial;
          function IndexOf(const pEstado: TEstadoLFA): Integer;
          function Transitar(pCadeia: string): TEstadoLFA;
+
+         property IndexEstadoAtual: integer read FIndexEstadoAtual;
    end;
 
 implementation
@@ -39,8 +47,8 @@ begin
             lEstado.ListaTransicoes.Add(TTransicao.Create('D', EstadoByID(teq21)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('"', EstadoByID(teq4)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('{', EstadoByID(teq1)));
-            lEstado.ListaTransicoes.Add(TTransicao.Create('EOF', EstadoByID(teq3)));
-            lEstado.ListaTransicoes.Add(TTransicao.Create('<', EstadoByID(teq7)));            
+            lEstado.ListaTransicoes.Add(TTransicao.Create(CHAR_EOF, EstadoByID(teq3)));
+            lEstado.ListaTransicoes.Add(TTransicao.Create('<', EstadoByID(teq7)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('>', EstadoByID(teq11)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('=', EstadoByID(teq13)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('-', EstadoByID(teq9)));                                    
@@ -49,17 +57,19 @@ begin
             lEstado.ListaTransicoes.Add(TTransicao.Create('/', EstadoByID(teq9)));
             lEstado.ListaTransicoes.Add(TTransicao.Create('(', EstadoByID(teq15)));            
             lEstado.ListaTransicoes.Add(TTransicao.Create(')', EstadoByID(teq16)));
-            lEstado.ListaTransicoes.Add(TTransicao.Create(';', EstadoByID(teq14)));            
+            lEstado.ListaTransicoes.Add(TTransicao.Create(';', EstadoByID(teq14)));
+            lEstado.ListaTransicoes.Add(TTransicao.Create('ESPAÇO', lEstado));
+            lEstado.ListaTransicoes.Add(TTransicao.Create('TAB', lEstado));
          end;
          teQ1:
          begin   
             lEstado.ListaTransicoes.Add(TTransicao.Create('}', EstadoByID(teq2)));
-            lEstado.ListaTransicoes.Add(TTransicao.Create('.', lEstado));            
-         end;         
+            lEstado.ListaTransicoes.Add(TTransicao.Create(CHAR_CURINGA, lEstado));
+         end;
          teQ4:
          begin
             lEstado.ListaTransicoes.Add(TTransicao.Create('"', EstadoByID(teq5)));
-            lEstado.ListaTransicoes.Add(TTransicao.Create('.', lEstado));            
+            lEstado.ListaTransicoes.Add(TTransicao.Create(CHAR_CURINGA, lEstado));
          end;
          teQ6:
          begin
@@ -113,11 +123,14 @@ var
    lEstadoLFA : TEstadoLFA;
    lFinal     : Boolean;
 begin
+   //para cada estado no vetor de possíveis
    for lEst in ARRAY_ESTADOS do
    begin
+      //Se final, receberá um token representativo
       lFinal := TAjuda.EstaoIsFinal(lEst);
       lEstadoLFA := TEstadoLFA.Create( lEst, lFinal);
 
+      //Atribuição conforme estipulado pela atividade
       if lFinal then
       begin
          case lEst of
@@ -137,6 +150,7 @@ begin
             teQ15: lEstadoLFA.Token := 'AB_P';
             teQ16: lEstadoLFA.Token := 'FC_P';
 
+            teQ20: lEstadoLFA.Token := 'ATT';
             teQ21, teQ23:
             begin
                lEstadoLFA.Token := 'NUM' ;
@@ -159,6 +173,7 @@ var
    lIndex: Integer;
    lEstado: TEstadoLFA;
 begin
+   //Encontrar o obj do estado mediante o ID
    for lIndex := 0 to  Pred(FListaEstados.Count) do
    begin
       lEstado := FListaEstados[lIndex];
@@ -191,8 +206,14 @@ end;
 
 function TAutomatoLexico.Transitar(pCadeia: string): TEstadoLFA;
 begin
+   //Transformar o item lido em um elemento para transição, caso conveniente
    pCadeia           := TAjuda.CharToElemento(pCadeia);
+
+   //provocar a transição do autômato mediante cadeia lida, retornando o índice do elemente atual
+   //após transitar
    FIndexEstadoAtual := Self.IndexOf(FListaEstados.Items[FIndexEstadoAtual].Transitar(pCadeia));
+
+   //retornar novo estado obj
    Result            := FListaEstados.Items[FIndexEstadoAtual];
 end;
 
