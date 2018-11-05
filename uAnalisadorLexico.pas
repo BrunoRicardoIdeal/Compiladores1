@@ -34,6 +34,8 @@ type
 
             //Palavra a ser analisada
             FPalavra: string;
+
+            FIndexProximoToken: integer;
          function IsSImboloInicial(const pSimbolo: string): boolean;
       public
          constructor Create(const pFonte: string);
@@ -50,6 +52,8 @@ type
 
          //Chamar o método principal da análise geral
          procedure AnalisarCodigoLexicamente;
+
+         function GetProximoToken: TItemDic;
 
          property DicTabelaSimbolos: TDictionary<string, TItemDic> read FDicTabelaSimbolos write FDicTabelaSimbolos;
          property Saida: TStringList read FSaida;
@@ -143,6 +147,7 @@ begin
    end;
 
    IniciarDicSimbolos;
+   FIndexProximoToken := -1;
 end;
 
 destructor TAnalisadorLexico.Destroy;
@@ -153,6 +158,34 @@ begin
    FLog.Free;
    FSaida.Free;
    inherited;
+end;
+
+function TAnalisadorLexico.GetProximoToken: TItemDic;
+var
+   lLinha: string;
+   lPosArroba: integer;
+begin
+   inc(FIndexProximoToken);
+   if FIndexProximoToken < FSaida.Count then
+   begin
+      lLinha := FSaida[FIndexProximoToken];
+      if not lLinha.Trim.IsEmpty then
+      begin
+         lPosArroba := Pos('@', lLinha);
+         Result := TItemDic.Create(copy(lLinha, 1, lPosArroba - 1),
+                                   copy(lLinha, lPosArroba + 1, lLinha.Length),
+                                   TIPO_NULO);
+      end
+      else
+      begin
+         Result := GetProximoToken;
+      end;
+   end
+   else
+   begin
+      Result := nil;
+      FIndexProximoToken := -1;
+   end;
 end;
 
 procedure TAnalisadorLexico.IniciarDicSimbolos;

@@ -8,7 +8,9 @@ uses
   uAutomatoLexico in 'uAutomatoLexico.pas',
   uEstadoLFA in 'uEstadoLFA.pas',
   Vcl.Themes,
-  Vcl.Styles;
+  Vcl.Styles,
+  uAnalisadorSintatico in 'uAnalisadorSintatico.pas',
+  uDmAux in 'uDmAux.pas' {DmAux: TDataModule};
 
 {$R *.res}
 
@@ -17,5 +19,6 @@ begin
   Application.MainFormOnTaskbar := True;
   TStyleManager.TrySetStyle('Windows10 Purple');
   Application.CreateForm(TfrmPrincipal, frmPrincipal);
+  Application.CreateForm(TDmAux, DmAux);
   Application.Run;
 end.

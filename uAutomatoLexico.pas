@@ -136,7 +136,8 @@ begin
          case lEst of
             teQ2: lEstadoLFA.Token := 'Comentário';
             teQ3: lEstadoLFA.Token := 'EOF';
-            teQ5: lEstadoLFA.Token := 'literal';
+//            teQ5: lEstadoLFA.Token := 'literal';
+            teQ5: lEstadoLFA.Token := 'lit';
             teQ6: lEstadoLFA.Token := 'id';
 
             teQ7, teQ8, teQ11, teQ12, teQ13, teQ26:
@@ -150,7 +151,8 @@ begin
             teQ15: lEstadoLFA.Token := 'AB_P';
             teQ16: lEstadoLFA.Token := 'FC_P';
 
-            teQ20: lEstadoLFA.Token := 'ATT';
+//            teQ20: lEstadoLFA.Token := 'ATT';
+            teQ20: lEstadoLFA.Token := 'RCB';
             teQ21, teQ23:
             begin
                lEstadoLFA.Token := 'NUM' ;

@@ -2,7 +2,7 @@ object frmPrincipal: TfrmPrincipal
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
-  Caption = 'Analisador l'#233'xico'
+  Caption = 'Analisador sint'#225'tico-l'#233'xico'
   ClientHeight = 538
   ClientWidth = 1036
   Color = clBtnFace
@@ -44,6 +44,13 @@ object frmPrincipal: TfrmPrincipal
     Height = 13
     Caption = 'Mensagens'
   end
+  object Label5: TLabel
+    Left = 351
+    Top = 215
+    Width = 86
+    Height = 13
+    Caption = 'Produ'#231#245'es reduce'
+  end
   object memoFonte: TMemo
     Left = 8
     Top = 32
@@ -65,9 +72,9 @@ object frmPrincipal: TfrmPrincipal
   end
   object DBGrid1: TDBGrid
     Left = 351
-    Top = 32
+    Top = 31
     Width = 349
-    Height = 433
+    Height = 178
     DataSource = dsPrinc
     Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgConfirmDelete, dgCancelOnExit, dgTitleClick, dgTitleHotTrack]
     ReadOnly = True
@@ -135,6 +142,14 @@ object frmPrincipal: TfrmPrincipal
       '')
     ReadOnly = True
     TabOrder = 4
+  end
+  object memoProducoes: TMemo
+    Left = 351
+    Top = 234
+    Width = 349
+    Height = 230
+    ScrollBars = ssVertical
+    TabOrder = 5
   end
   object memTblPrinc: TFDMemTable
     FetchOptions.AssignedValues = [evMode]

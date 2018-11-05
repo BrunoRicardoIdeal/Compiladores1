@@ -16,7 +16,7 @@ uses
   Vcl.StdCtrls, Data.DB, FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
   FireDAC.DApt.Intf, FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.Grids,
-  Vcl.DBGrids, Vcl.WinXCtrls;
+  Vcl.DBGrids, Vcl.WinXCtrls, uAnalisadorSintatico;
 
 type
   TfrmPrincipal = class(TForm)
@@ -39,17 +39,18 @@ type
     Label3: TLabel;
     memoLog: TMemo;
     Label4: TLabel;
+    Label5: TLabel;
+    memoProducoes: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
   private
-     const
-        CAMINHO_FONTE = 'Fonte.txt';
      var
-        FAnaLexico: TAnalisadorLexico;
-
+        FAnaSintatico: TAnalisadorSintatico;
      procedure PreencherReconhecidos;
      procedure PreencherTabelaSimbolos;
+     procedure PreencherProducoes;
+     procedure PreencheLog;
      procedure EnumeraLinhasFonte;
      procedure LimparDados;
     { Private declarations }
@@ -73,13 +74,21 @@ begin
    //Limpa análise passada
    LimparDados;
 
-   //Processa a análise completa
-   FAnaLexico.AnalisarCodigoLexicamente;
+   try
+      //Processa a análise completa
+      FAnaSintatico.Exec;
+   except
+      on EAbort do
+      begin
+         PreencheLog;
+         Exit;
+      end;
+   end;
 
    //Preenche visualizações
    PreencherReconhecidos;
    PreencherTabelaSimbolos;
-   memoLog.Lines.Text := FAnaLexico.Log.Text;
+   PreencherProducoes;
 end;
 
 procedure TfrmPrincipal.EnumeraLinhasFonte;
@@ -105,9 +114,9 @@ end;
 
 procedure TfrmPrincipal.FormDestroy(Sender: TObject);
 begin
-   if Assigned(FAnaLexico) then
+   if Assigned(FAnaSintatico) then
    begin
-      FAnaLexico.Free;
+      FAnaSintatico.Free;
    end;
 end;
 
@@ -131,10 +140,26 @@ begin
    try
       lFonte.LoadFromFile(CAMINHO_FONTE);
       lFonte.Add(CHAR_EOF);
-      FAnaLexico := TAnalisadorLexico.Create(lFonte.Text);
+//      FAnaLexico := TAnalisadorLexico.Create(lFonte.Text);
+      FAnaSintatico := TAnalisadorSintatico.Create(lFonte.Text);
    finally
       lFonte.Free;
    end;
+
+   memoProducoes.Clear;
+   memoLog.Clear;
+end;
+
+procedure TfrmPrincipal.PreencheLog;
+begin
+   memoLog.Lines.Text := FAnaSintatico.AnaLexico.Log.Text;
+   memoLog.Lines.AddStrings(FAnaSintatico.log);
+end;
+
+procedure TfrmPrincipal.PreencherProducoes;
+begin
+   memoProducoes.Clear;
+   memoProducoes.Lines.Text := FAnaSintatico.Saida.Text;
 end;
 
 procedure TfrmPrincipal.PreencherReconhecidos;
@@ -155,7 +180,7 @@ begin
       memTblPrinc.EmptyDataSet;
    end;
 
-   for lLinha in FAnaLexico.Saida do
+   for lLinha in FAnaSintatico.AnaLexico.Saida do
    begin
       //Artifício de cópia e separação de itens para visualização
       if not lLinha.Trim.IsEmpty then
@@ -188,12 +213,12 @@ begin
       MemTblSimb.EmptyDataSet;
    end;
 
-   for lChave in FAnaLexico.DicTabelaSimbolos.Keys do
+   for lChave in FAnaSintatico.AnaLexico.DicTabelaSimbolos.Keys do
    begin
       MemTblSimb.Append;
-      MemTblSimbTOKEN.AsString := FAnaLexico.DicTabelaSimbolos[lChave].Token.Trim;
-      MemTblSimbLEXEMA.AsString := FAnaLexico.DicTabelaSimbolos[lChave].Lexema.Trim;
-      MemTblSimbTIPO.AsString := FAnaLexico.DicTabelaSimbolos[lChave].Tipo;
+      MemTblSimbTOKEN.AsString  := FAnaSintatico.AnaLexico.DicTabelaSimbolos[lChave].Token.Trim;
+      MemTblSimbLEXEMA.AsString := FAnaSintatico.AnaLexico.DicTabelaSimbolos[lChave].Lexema.Trim;
+      MemTblSimbTIPO.AsString   := FAnaSintatico.AnaLexico.DicTabelaSimbolos[lChave].Tipo;
       MemTblSimb.Post;
    end;
    MemTblSimb.First;
