@@ -3,7 +3,7 @@ unit uClassesBase;
 interface
    uses
       System.Generics.Collections, uTransicao, strutils, Sysutils,
-      System.Character;
+      System.Character, Classes;
 
 type
 
@@ -51,12 +51,19 @@ type
       private
          FToken: string;
          FLexema: string;
-         FTipo: Char;
+         FTipo: string;
+         FListaProduzido: TObjectList<TItemDic>;
+    procedure SetLexema(const Value: string);
+    procedure SetTipo(const Value: string);
+    procedure SetToken(const Value: string);
       public
-         constructor Create(const pToken, pLexema: string; const pTipo: Char);
-         property Token: string read FToken;
-         property Lexema: string read FLexema;
-         property Tipo: Char read FTipo;
+         constructor Create(const pToken, pLexema: string; const pTipo: string);
+         destructor Destroy;override;
+         procedure Clone(pOrigem: TItemDic; pFull: boolean = False);
+         property Token: string read FToken write SetToken;
+         property Lexema: string read FLexema write SetLexema;
+         property Tipo: string read FTipo write SetTipo;
+         property ListaProduzido: TObjectList<TItemDic> read FListaProduzido write FListaProduzido;
    end;
 
    TProducao = class(TObject)
@@ -69,6 +76,14 @@ type
    end;
 
    TPilhaSintatico  = TStack<TEstado>;
+
+//   TPilhaSemantico = class(TObjectStack<TItemDic>)
+//      private
+//
+//      public
+//         function Popar: TItemDic;
+//   end;
+
    TTipoAcaoSintatico = (ttaShift, ttaReduce, ttaAccept, ttaError);
 
    TAcaoSintatico = class(TObject)
@@ -85,15 +100,26 @@ type
    //Classe helper
    TAjuda = class
       class function CharToElemento(const pCaractere: string): string;
+      class function CharTipoToStr(const pTipo: Char): string;
       class function EstaoIsFinal(const pEstado: TEstadoAutomatoMGOL): Boolean;
+      class function GetTipoByItemDic(const pItemDic: TItemDic): string;
+      class function PopObjectStack(var pObjStack: TObjectStack<TItemDic>): TItemDic;
+      class function GetSimbolosBeta(pBeta: string): TStringList;
+      class function PodeOperarRelacional(const pTipo: string): Boolean;
    end;
-
 
 const
    CHAR_CURINGA = '§';
    CHAR_EOF = '¢';
    TIPO_NULO = 'N';
+   TIPO_LITERAL = 'L';
+   TIPO_INTEIRO = 'I';
+   TIPO_REAL = 'R';
    CAMINHO_FONTE = 'Fonte.txt';
+   CAMINHO_FONTEO = 'FonteO.txt';
+   INDEX_PAI = 0;
+   INDEX_FILHO1 = 1;
+   INDEX_FILHO2 = 2;
 
 
    //Vetor com os estados úteis(recurso para laço)
@@ -121,6 +147,16 @@ const
 implementation
 
 { TClassHelper }
+
+class function TAjuda.CharTipoToStr(const pTipo: Char): string;
+begin
+   case pTipo of
+      TIPO_NULO: Result := 'Nulo';
+      TIPO_LITERAL: Result := 'Literal';
+      TIPO_INTEIRO: Result := 'Inteiro';
+      TIPO_REAL: Result := 'Real';
+   end;
+end;
 
 class function TAjuda.CharToElemento(const pCaractere: string): string;
 begin
@@ -173,11 +209,44 @@ end;
 
 { TItemDic }
 
-constructor TItemDic.Create(const pToken, pLexema: string; const pTipo: Char);
+procedure TItemDic.Clone(pOrigem: TItemDic; pFull: boolean = False);
+begin
+   if pFull then
+   begin
+      Self.FToken := pOrigem.Token;
+   end;
+
+   Self.FLexema := pOrigem.Lexema;
+   Self.FTipo := pOrigem.Tipo;
+end;
+
+constructor TItemDic.Create(const pToken, pLexema: string; const pTipo: string);
 begin
    FToken := pToken;
    FTipo := pTipo;
    FLexema := pLexema;
+   FListaProduzido := TObjectList<TItemDic>.Create();
+end;
+
+destructor TItemDic.Destroy;
+begin
+   FListaProduzido.Free;
+   inherited;
+end;
+
+procedure TItemDic.SetLexema(const Value: string);
+begin
+  FLexema := Value;
+end;
+
+procedure TItemDic.SetTipo(const Value: string);
+begin
+  FTipo := Value;
+end;
+
+procedure TItemDic.SetToken(const Value: string);
+begin
+  FToken := Value;
 end;
 
 class function TAjuda.EstaoIsFinal(const pEstado: TEstadoAutomatoMGOL): Boolean;
@@ -195,6 +264,46 @@ begin
       end;
    end;
 end;
+class function TAjuda.GetSimbolosBeta(pBeta: string): TStringList;
+begin
+   Result                 := TStringList.Create;
+   Result.Delimiter       := ' ';
+   Result.StrictDelimiter := True;
+   Result.DelimitedText   := pBeta;
+end;
+
+class function TAjuda.GetTipoByItemDic(const pItemDic: TItemDic): string;
+var
+   lToken: string;
+begin
+   if Assigned(pItemDic) then
+   begin
+      lToken := pItemDic.Token.ToUpper;
+
+      case  AnsiIndexText(lToken.ToUpper.Trim, ['OPM', 'OPR', 'RCB',
+         'INTEIRO', 'REAL', 'LITERAL', 'NUM']) of
+         0,1,2, 5:  Result := pItemDic.Lexema.Trim;
+         3, 6: Result := 'int';
+         4: Result := 'double';
+      end;
+   end;
+end;
+
+class function TAjuda.PodeOperarRelacional(const pTipo: string): Boolean;
+begin
+   Result := (ptipo.ToLower = 'int') or (pTipo.ToLower = 'double');
+end;
+
+class function TAjuda.PopObjectStack(
+  var pObjStack: TObjectStack<TItemDic>): TItemDic;
+var
+   lpeek: TItemDic;
+begin
+   lpeek := pObjStack.Peek;
+   Result := TItemDic.Create(lpeek.Token, lpeek.Lexema, lpeek.Tipo);
+   pObjStack.Pop;
+end;
+
 { TAcaoSintatico }
 
 constructor TAcaoSintatico.Create(const pTipo: TTipoAcaoSintatico;
@@ -213,5 +322,16 @@ begin
    FSimbOrigem := pOrigem;
    FProduzido := pProduzido;
 end;
+
+{ TPilhaSemantico }
+
+//function TPilhaSemantico.Popar: TItemDic;
+//var
+//   lpeek: TItemDic;
+//begin
+//   lpeek := Self.Peek;
+//   Result := TItemDic.Create(lpeek.Token, lpeek.Lexema, lpeek.Tipo);
+//   Self.Pop;
+//end;
 
 end.

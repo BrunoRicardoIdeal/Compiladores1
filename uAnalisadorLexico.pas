@@ -175,6 +175,7 @@ begin
          Result := TItemDic.Create(copy(lLinha, 1, lPosArroba - 1),
                                    copy(lLinha, lPosArroba + 1, lLinha.Length),
                                    TIPO_NULO);
+         Result.Tipo := TAjuda.GetTipoByItemDic(Result);
       end
       else
       begin
@@ -296,7 +297,7 @@ begin
          //atribuir o elemento anterior como o atual
          if Assigned(lItemAnalisado) then
          begin
-            lItemAnterior :=  TItemDic.Create(lItemAnalisado.Token, lItemAnalisado.Lexema, lItemAnalisado.Tipo);
+            lItemAnterior :=  TItemDic.Create(lItemAnalisado.Token, lItemAnalisado.Lexema, lItemAnalisado.Tipo[1]);
          end;
 
          Inc(lIndex);

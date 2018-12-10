@@ -10,7 +10,8 @@ uses
   Vcl.Themes,
   Vcl.Styles,
   uAnalisadorSintatico in 'uAnalisadorSintatico.pas',
-  uDmAux in 'uDmAux.pas' {DmAux: TDataModule};
+  uDmAux in 'uDmAux.pas' {DmAux: TDataModule},
+  uAnalisadorSemantico in 'uAnalisadorSemantico.pas';
 
 {$R *.res}
 

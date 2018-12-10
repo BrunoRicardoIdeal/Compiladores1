@@ -41,6 +41,8 @@ type
     Label4: TLabel;
     Label5: TLabel;
     memoProducoes: TMemo;
+    Label6: TLabel;
+    memoCodInt: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -50,6 +52,7 @@ type
      procedure PreencherReconhecidos;
      procedure PreencherTabelaSimbolos;
      procedure PreencherProducoes;
+     procedure PreencherCodigoInt;
      procedure PreencheLog;
      procedure EnumeraLinhasFonte;
      procedure LimparDados;
@@ -64,7 +67,7 @@ var
 implementation
 
 uses
-  uClassesBase;
+  uClassesBase, System.Generics.Collections;
 
 {$R *.dfm}
 
@@ -78,7 +81,7 @@ begin
       //Processa a análise completa
       FAnaSintatico.Exec;
    except
-      on EAbort do
+      on e: Exception do
       begin
          PreencheLog;
          Exit;
@@ -89,6 +92,7 @@ begin
    PreencherReconhecidos;
    PreencherTabelaSimbolos;
    PreencherProducoes;
+   PreencherCodigoInt;
 end;
 
 procedure TfrmPrincipal.EnumeraLinhasFonte;
@@ -148,12 +152,19 @@ begin
 
    memoProducoes.Clear;
    memoLog.Clear;
+   memoCodInt.Clear;
 end;
 
 procedure TfrmPrincipal.PreencheLog;
 begin
    memoLog.Lines.Text := FAnaSintatico.AnaLexico.Log.Text;
    memoLog.Lines.AddStrings(FAnaSintatico.log);
+end;
+
+procedure TfrmPrincipal.PreencherCodigoInt;
+begin
+   memoCodInt.Text := FAnaSintatico.AnaSemantico.GetCodigoFinal.Text;
+   memoCodInt.Lines.SaveToFile('programa.c');
 end;
 
 procedure TfrmPrincipal.PreencherProducoes;
